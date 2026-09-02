@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Checkout</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="login-container">
+
+    <h2>Delivery Details</h2>
+
+    <input type="text" id="name"
+    placeholder="Full Name">
+
+    <input type="text" id="phone"
+    placeholder="Mobile Number">
+
+    <input type="text" id="address"
+    placeholder="Full Address">
+
+    <input type="text" id="city"
+    placeholder="City">
+
+    <input type="text" id="pincode"
+    placeholder="Pincode">
+
+    <button onclick="goToPayment()">
+        Continue To Payment
+    </button>
+
+</div>
+
+<div id="paymentPopup" class="payment-popup">
+
+    <div class="popup-content">
+
+        <h2>Confirm Order</h2>
+
+        <img id="popupImage" width="150">
+
+        <h3 id="popupName"></h3>
+
+        <p>Price: <span id="popupPrice"></span></p>
+
+        <p>Quantity: <span id="popupQty"></span></p>
+
+        <h3>Total: <span id="popupTotal"></span></h3>
+
+        <button onclick="goPaymentPage()">
+            Pay Now
+        </button>
+
+        <button onclick="closePopup()">
+            Cancel
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+
+function goToPayment(){
+   
+    let name =
+    document.getElementById("name").value;
+
+    let phone =
+    document.getElementById("phone").value;
+
+    let address =
+    document.getElementById("address").value;
+
+    let city =
+    document.getElementById("city").value;
+
+    let pincode =
+    document.getElementById("pincode").value;
+
+    if(name=="" || phone=="" ||
+       address=="" || city=="" ||
+       pincode==""){
+
+      document.getElementById("errorPopup").style.display = "flex";
+      return;
+    }
+
+    localStorage.setItem("customerName", name);
+    localStorage.setItem("customerPhone", phone);
+    localStorage.setItem("customerAddress", address);
+
+   let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+let item = cart[0];
+
+
+document.getElementById("popupImage").src = item.image;
+document.getElementById("popupName").innerHTML = item.name;
+document.getElementById("popupPrice").innerHTML = item.price;
+document.getElementById("popupQty").innerHTML = item.quantity;
+
+let total = item.price * item.quantity;
+
+document.getElementById("popupTotal").innerHTML = total;
+
+document.getElementById("paymentPopup").style.display = "flex";
+}
+
+
+function closePopup(){
+
+    document.getElementById("paymentPopup")
+    .style.display = "none";
+}
+
+function goPaymentPage(){
+
+    window.location.href = "payment.php";
+}
+function closeErrorPopup(){
+
+    document.getElementById("errorPopup")
+    .style.display = "none";
+}
+</script>
+
+<div id="errorPopup" class="error-popup">
+    <div class="error-content">
+
+        <h3>Please Fill All Delivery Details</h3>
+
+        <button onclick="closeErrorPopup()">
+            OK
+        </button>
+
+    </div>
+</div>
+</body>
+</html>

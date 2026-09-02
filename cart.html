@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cart - Nikunj Creation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="cart-container">
+
+    <h1>Your Cart</h1>
+
+    <div id="cartItems"></div>
+
+    <h2 id="total"></h2>
+
+    <br>
+
+    <a href="checkout.html">
+        <button class="checkout-btn">
+            Proceed To Checkout
+        </button>
+    </a>
+
+    <br><br>
+
+    <a href="index.php">
+        Continue Shopping
+    </a>
+
+</div>
+
+<script>
+
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+let cartItems = document.getElementById("cartItems");
+
+let total = 0;
+
+function displayCart(){
+
+    cartItems.innerHTML = "";
+    total = 0;
+
+    if(cart.length === 0){
+
+        cartItems.innerHTML =
+        "<h2>Your Cart Is Empty </h2>";
+
+        document.getElementById("total").innerHTML = "";
+
+        return;
+    }
+
+    
+    cart.forEach((item,index)=>{
+
+        total += item.price * item.quantity;
+
+        cartItems.innerHTML += `
+    <div class="cart-item">
+
+        <img src="${item.image}" width="120">
+
+        <h3>${item.name}</h3>
+
+        <p>Price : ${item.price}</p>
+
+        <p>
+    Quantity:
+    <button onclick="decreaseQty(${index})">-</button>
+
+    ${item.quantity}
+
+    <button onclick="increaseQty(${index})">+</button>
+</p>
+
+        <button onclick="removeItem(${index})">
+            Remove
+        </button>
+
+        <button onclick="buyCartItem(${index})">
+            Buy Now
+        </button>
+
+    </div>
+`;
+    });
+
+    document.getElementById("total").innerHTML =
+    "Total : " + total;
+}
+function increaseQty(index){
+
+    cart[index].quantity =
+    parseInt(cart[index].quantity) + 1;
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+
+    displayCart();
+}
+
+function decreaseQty(index){
+
+    if(cart[index].quantity > 1){
+
+        cart[index].quantity =
+        parseInt(cart[index].quantity) - 1;
+
+        localStorage.setItem("cart", JSON.stringify(cart));
+
+        displayCart();
+    }
+}
+
+function removeItem(index){
+
+    cart.splice(index,1);
+
+    localStorage.setItem("cart",JSON.stringify(cart));
+
+    displayCart();
+}
+function buyCartItem(index){
+
+    let selectedItem = cart[index];
+
+    localStorage.setItem(
+        "buyNowItem",
+        JSON.stringify(selectedItem)
+    );
+
+    window.location.href = "checkout.html";
+}
+
+displayCart();
+
+</script>
+
+</body>
+</html>

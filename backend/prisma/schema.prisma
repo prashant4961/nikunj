@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  fullName     String
+  email        String     @unique
+  phone        String
+  passwordHash String
+  role         Role       @default(CUSTOMER)
+  createdAt    DateTime   @default(now())
+  orders       Order[]
+  wishlist     Wishlist[]
+  addresses    Address[]
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+model Product {
+  id          Int         @id @default(autoincrement())
+  name        String
+  slug        String      @unique
+  description String
+  category    String
+  price       Int
+  mrp         Int
+  image       String
+  gallery     String[]    @default([])
+  stock       Int         @default(0)
+  rating      Float       @default(4.3)
+  ratingCount Int         @default(0)
+  featured    Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
+  wishlist    Wishlist[]
+
+  @@index([category])
+}
+
+model Address {
+  id       Int     @id @default(autoincrement())
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   Int
+  name     String
+  phone    String
+  line1    String
+  city     String
+  state    String  @default("Maharashtra")
+  pincode  String
+  isDefault Boolean @default(false)
+}
+
+model Order {
+  id              Int         @id @default(autoincrement())
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          Int
+  customerName    String
+  customerPhone   String
+  customerAddress String
+  customerCity    String
+  customerPincode String
+  itemsTotal      Int
+  discount        Int         @default(0)
+  deliveryFee     Int         @default(0)
+  totalAmount     Int
+  paymentMethod   String      @default("UPI")
+  paymentStatus   String      @default("Paid")
+  orderStatus     OrderStatus @default(PENDING)
+  orderDate       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  items           OrderItem[]
+
+  @@index([userId])
+}
+
+enum OrderStatus {
+  PENDING
+  PACKED
+  SHIPPED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+model OrderItem {
+  id           Int      @id @default(autoincrement())
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId      Int
+  product      Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productId    Int?
+  productName  String
+  productImage String
+  price        Int
+  quantity     Int
+}
+
+model Wishlist {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId Int
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}

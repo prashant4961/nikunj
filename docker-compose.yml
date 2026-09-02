@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-nikunj}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nikunj}
+      POSTGRES_DB: ${POSTGRES_DB:-nikunj_creation}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-nikunj} -d ${POSTGRES_DB:-nikunj_creation}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-nikunj}:${POSTGRES_PASSWORD:-nikunj}@db:5432/${POSTGRES_DB:-nikunj_creation}?schema=public
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in the environment}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@nikunjcreation.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin@123}
+      SEED_ON_START: ${SEED_ON_START:-true}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'node', '-e', "require('http').get('http://127.0.0.1:4000/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ''
+    restart: unless-stopped
+    environment:
+      BACKEND_ORIGIN: http://backend:4000
+    depends_on:
+      - backend
+    ports:
+      # Dokploy maps its Traefik proxy to this published port
+      - '${WEB_PORT:-8080}:80'
+
+volumes:
+  db-data:
